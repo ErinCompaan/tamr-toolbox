@@ -11,13 +11,17 @@ import tamr_toolbox as tbox
 
 def test__run_local_command():
     # Test successful command
-    exit_code, stdout, stderr = tbox.sysadmin.instance._run_local_command('echo "Hello World"')
+    exit_code, stdout, stderr = tbox.sysadmin.instance._run_local_command(
+        'echo "Hello World"'
+    )
     assert exit_code == 0
     assert "Hello World" in stdout
     assert len(stderr) == 0
 
     # Test unsuccessful command
-    exit_code, stdout, stderr = tbox.sysadmin.instance._run_local_command("thisIsNotACommand")
+    exit_code, stdout, stderr = tbox.sysadmin.instance._run_local_command(
+        "thisIsNotACommand"
+    )
     assert exit_code != 0
     assert len(stdout) == 0
     assert "not found" in stderr or "not recognized" in stderr
@@ -27,6 +31,7 @@ def test__run_local_command():
         exit_code, stdout, stderr = tbox.sysadmin.instance._run_local_command(
             "CHOICE", command_input=b"N\n"
         )
+        print(exit_code, stdout, stderr)
         assert "[Y,N]?N\r\n" == stdout
         assert len(stderr) == 0
 
@@ -48,7 +53,9 @@ def test__run_remote_command():
     stdin_file.write = MagicMock()
     stdout_file = channel.makefile("stdout")
     stderr_file = channel.makefile("stderr")
-    remote_client.exec_command = MagicMock(return_value=(stdin_file, stdout_file, stderr_file))
+    remote_client.exec_command = MagicMock(
+        return_value=(stdin_file, stdout_file, stderr_file)
+    )
     remote_client.get_transport = MagicMock(return_value=transport)
     transport.getpeername = MagicMock(return_value=["0.0.0.0"])
     transport.get_username = MagicMock(return_value="my_username")
@@ -67,8 +74,12 @@ def test__run_remote_command():
     stderr_file.close()
 
 
-@mock.patch("tamr_toolbox.sysadmin.instance._run_local_command", return_value=(0, "out", "err"))
-@mock.patch("tamr_toolbox.sysadmin.instance._run_remote_command", return_value=(0, "", ""))
+@mock.patch(
+    "tamr_toolbox.sysadmin.instance._run_local_command", return_value=(0, "out", "err")
+)
+@mock.patch(
+    "tamr_toolbox.sysadmin.instance._run_remote_command", return_value=(0, "", "")
+)
 def test__run_command(run_remote, run_local):
     basic_command = 'echo "Hello World"'
 
@@ -102,7 +113,9 @@ def test__run_command(run_remote, run_local):
 
     # Test impersonation with password
     exit_code, stdout, stderr = tbox.sysadmin.instance._run_command(
-        basic_command, impersonation_username="my_user", impersonation_password="my_pass"
+        basic_command,
+        impersonation_username="my_user",
+        impersonation_password="my_pass",
     )
     assert exit_code == 0
     run_local.assert_called_with(
@@ -110,7 +123,9 @@ def test__run_command(run_remote, run_local):
     )
 
 
-@mock.patch("tamr_toolbox.sysadmin.instance._run_local_command", return_value=(1, "", ""))
+@mock.patch(
+    "tamr_toolbox.sysadmin.instance._run_local_command", return_value=(1, "", "")
+)
 def test__run_command_with_failure(run_local):
     basic_command = 'echo "Hello World"'
 
@@ -128,7 +143,9 @@ def test_start_tamr(run_command):
     tamr_dir = "/data/tamr-home"
 
     # Test starting with dependencies
-    tbox.sysadmin.instance.start_tamr(tamr_install_dir=tamr_dir, include_dependencies=True)
+    tbox.sysadmin.instance.start_tamr(
+        tamr_install_dir=tamr_dir, include_dependencies=True
+    )
     run_command.has_calls(
         [
             call(
@@ -152,7 +169,9 @@ def test_start_tamr(run_command):
 
     # Test starting without dependencies
     run_command.reset_mock()
-    tbox.sysadmin.instance.start_tamr(tamr_install_dir=tamr_dir, include_dependencies=False)
+    tbox.sysadmin.instance.start_tamr(
+        tamr_install_dir=tamr_dir, include_dependencies=False
+    )
     run_command.assert_called_once_with(
         command=f"{tamr_dir}/tamr/start-unify.sh",
         remote_client=None,
@@ -168,7 +187,9 @@ def test_stop_tamr(run_command):
     tamr_dir = "/data/tamr-home"
 
     # Test stopping with dependencies
-    tbox.sysadmin.instance.stop_tamr(tamr_install_dir=tamr_dir, include_dependencies=True)
+    tbox.sysadmin.instance.stop_tamr(
+        tamr_install_dir=tamr_dir, include_dependencies=True
+    )
     run_command.has_calls(
         [
             call(
@@ -192,7 +213,9 @@ def test_stop_tamr(run_command):
 
     # Test stopping without dependencies
     run_command.reset_mock()
-    tbox.sysadmin.instance.stop_tamr(tamr_install_dir=tamr_dir, include_dependencies=False)
+    tbox.sysadmin.instance.stop_tamr(
+        tamr_install_dir=tamr_dir, include_dependencies=False
+    )
     run_command.assert_called_once_with(
         command=f"{tamr_dir}/tamr/stop-unify.sh",
         remote_client=None,
@@ -208,7 +231,9 @@ def test_restart_tamr(run_command):
     tamr_dir = "/data/tamr-home"
 
     # Test restarting with dependencies
-    tbox.sysadmin.instance.restart_tamr(tamr_install_dir=tamr_dir, include_dependencies=True)
+    tbox.sysadmin.instance.restart_tamr(
+        tamr_install_dir=tamr_dir, include_dependencies=True
+    )
     run_command.has_calls(
         [
             call(
@@ -244,7 +269,9 @@ def test_restart_tamr(run_command):
 
     # Test restarting without dependencies
     run_command.reset_mock()
-    tbox.sysadmin.instance.restart_tamr(tamr_install_dir=tamr_dir, include_dependencies=False)
+    tbox.sysadmin.instance.restart_tamr(
+        tamr_install_dir=tamr_dir, include_dependencies=False
+    )
     run_command.has_calls(
         [
             call(
@@ -274,10 +301,13 @@ def test_get_configs(run_command):
     run_command.reset_mock()
 
     # test get list of names
-    tbox.sysadmin.instance.get_configs(config_names=["EXAMPLE", "other"], tamr_install_dir="/data")
+    tbox.sysadmin.instance.get_configs(
+        config_names=["EXAMPLE", "other"], tamr_install_dir="/data"
+    )
     run_command_args = run_command.mock_calls[0][2]
     assert (
-        run_command_args["command"] == "/data/tamr/utils/unify-admin.sh config:get EXAMPLE other"
+        run_command_args["command"]
+        == "/data/tamr/utils/unify-admin.sh config:get EXAMPLE other"
     )
     run_command.reset_mock()
 
@@ -307,7 +337,9 @@ def test_get_configs(run_command):
         "TAMR_JOB_SPARK_EXECUTOR_INSTANCES: 1\nTAMR_JOB_SPARK_EXECUTOR_MEM: 26G\n"
         "TAMR_SPARK_CORES: 6\nTAMR_SPARK_MEMORY: 33G"
     )
-    with mock.patch("tamr_toolbox.sysadmin.instance._run_command", return_value=(0, stdout, "")):
+    with mock.patch(
+        "tamr_toolbox.sysadmin.instance._run_command", return_value=(0, stdout, "")
+    ):
         configs = tbox.sysadmin.instance.get_configs(
             config_search_regex="cores", tamr_install_dir=""
         )
@@ -316,7 +348,9 @@ def test_get_configs(run_command):
         assert configs["TAMR_JOB_SPARK_EXECUTOR_CORES"] == 3
 
     # test get_config
-    with mock.patch("tamr_toolbox.sysadmin.instance._run_command", return_value=(0, stdout, "")):
+    with mock.patch(
+        "tamr_toolbox.sysadmin.instance._run_command", return_value=(0, stdout, "")
+    ):
         config_value = tbox.sysadmin.instance.get_config(
             config_name="TAMR_JOB_SPARK_DRIVER_MEM", tamr_install_dir=""
         )
@@ -327,7 +361,8 @@ def test_get_configs(run_command):
 def test_set_configs(run_command):
     # test set simple
     with mock.patch(
-        "tamr_toolbox.sysadmin.instance.get_configs", return_value={"example": None, "other": None}
+        "tamr_toolbox.sysadmin.instance.get_configs",
+        return_value={"example": None, "other": None},
     ):
         tbox.sysadmin.instance.set_configs(
             tamr_install_dir="/data", configs={"example": 0, "other": "a"}
@@ -364,7 +399,8 @@ def test_set_configs(run_command):
         )
         run_command_args = run_command.mock_calls[0][2]
         assert (
-            run_command_args["command"] == "/data/tamr/utils/unify-admin.sh config:set example=9"
+            run_command_args["command"]
+            == "/data/tamr/utils/unify-admin.sh config:set example=9"
         )
         assert len(changed_configs.keys()) == 2
         assert changed_configs["example"] == 9
